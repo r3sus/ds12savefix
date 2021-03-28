@@ -1,6 +1,6 @@
 Dead Space 2 PC Save Fixer
 
-required after manual hex editing
+fix Dead Space 2 PC Saves after manual editing
 
 Requirements:
 .NET Framework 4.0 or Newer
