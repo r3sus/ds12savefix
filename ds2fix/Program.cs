@@ -23,7 +23,7 @@ namespace ds2fix
             var DataStream = new MemoryStream();
 
             using (var fs = File.OpenRead(SaveFilePath)) fs.CopyTo(DataStream);
-
+            /*
             DataStream.Seek(0x0, SeekOrigin.Begin);
             var magic = DataStream.ReadInt32();
             if (magic != 1213024082) // RGMH
@@ -37,7 +37,7 @@ namespace ds2fix
             {
                 return;
             }
-
+            
             DataStream.Seek(0x2834, SeekOrigin.Begin);
             var MC02Header = new MC02Header
             {
@@ -52,22 +52,23 @@ namespace ds2fix
 
             if (MC02Header.Magic != 1296248882) // 20CM
             {
-                return;
+                //return;
             }
 
             if (MC02Header.TotalLength != MC02Header.Chunk0Length + MC02Header.Chunk1Length + 0x1C)
             {
-                return;
+                //return;
             }
+            */
 
-            ChecksumsStuff.FixChecksums(DataStream, MC02Header);
-            using (var fs = File.Create(SaveFilePath))
+            ChecksumsStuff.FixChecksums(DataStream);//, MC02Header);
+            using (var fs = File.Create(SaveFilePath+".fix"))
             {
                 DataStream.WriteTo(fs);
             }
 
             Console.WriteLine("fixed");
-
+            Console.ReadLine();
         }
     }
 }

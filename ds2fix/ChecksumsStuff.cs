@@ -59,14 +59,14 @@ namespace DeadSpace2SaveEditor.Code
         };
 
         #region HASH
-        public static void FixChecksums(MemoryStream stream, MC02Header mc02Header)
+        public static void FixChecksums(MemoryStream stream)//, MC02Header mc02Header)
         {
             #region Fix save data hash
             var saveDataHash = CalculateSaveDataHash(stream);
-            stream.Seek(0x2854, SeekOrigin.Begin);
+            stream.Seek(0x2854-0x2830-4, SeekOrigin.Begin); //20
             stream.Write(BitConverter.GetBytes(saveDataHash), 0, 4);
             #endregion
-
+            /*
             #region Fix mc02 checksums
             CalculateMC02Checksums(stream, mc02Header);
             stream.Seek(0x2844, SeekOrigin.Begin);
@@ -74,18 +74,20 @@ namespace DeadSpace2SaveEditor.Code
             stream.Write(BitConverter.GetBytes(mc02Header.Checksum1), 0, 4);
             stream.Write(BitConverter.GetBytes(mc02Header.Checksum2), 0, 4);
             #endregion
+            */
         }
 
         #region Save data hash
         private static int CalculateSaveDataHash(MemoryStream stream)
         {
-            stream.Seek(0x2854, SeekOrigin.Begin);
+            stream.Seek(0x2854-0x2830, SeekOrigin.Begin); // 20 +
             stream.Write(new byte[] { 0, 0, 0, 0 }, 0, 4);
-            var chunk0Hash = CalculateHash(stream, 0x2850, 0x170, 0);
+            var chunk0Hash = CalculateHash(stream, 0x2850 - 0x2830, 0x170, 0); // 20 +
 
-            stream.Seek(0x28bc, SeekOrigin.Begin);
+            stream.Seek(0x28bc - 0x2830 - 4, SeekOrigin.Begin); 
+            //8C -> 88 +
             var chunk1Lingth = stream.ReadInt32();
-            var chunk1Hash = CalculateHash(stream, 0x29c0, chunk1Lingth, chunk0Hash);
+            var chunk1Hash = CalculateHash(stream, 0x29c0 - 0x2830, chunk1Lingth, chunk0Hash); //190 +
 
             return chunk1Hash;
         }
