@@ -15,9 +15,9 @@ namespace ds2fix
 
         static void Main(string[] args)
         {
-            string SaveFilePath = "";
+            string SaveFilePath = "..\\..\\x2pi\\ds_slot_05";
 
-            if (args.Length == 0) return;
+            if (args.Length == 0) { }//return;
             else SaveFilePath = args[0];
             
             var DataStream = new MemoryStream();
@@ -37,8 +37,8 @@ namespace ds2fix
             {
                 return;
             }
-            
-            DataStream.Seek(0x2834, SeekOrigin.Begin);
+            */
+            DataStream.Seek(0xD000, SeekOrigin.Begin);
             var MC02Header = new MC02Header
             {
                 Magic = DataStream.ReadUInt32(),
@@ -49,26 +49,32 @@ namespace ds2fix
                 Checksum1 = DataStream.ReadUInt32(),
                 Checksum2 = DataStream.ReadUInt32(),
             };
-
+            /*
+            Console.WriteLine(MC02Header.Checksum0);
+            Console.WriteLine(MC02Header.Checksum1);
+            Console.WriteLine(MC02Header.Checksum2);
+            */
             if (MC02Header.Magic != 1296248882) // 20CM
             {
-                //return;
+                Console.WriteLine("MC02");
+                return;
             }
 
             if (MC02Header.TotalLength != MC02Header.Chunk0Length + MC02Header.Chunk1Length + 0x1C)
             {
-                //return;
+                Console.WriteLine("Length");
+                return;
             }
-            */
+            
 
-            ChecksumsStuff.FixChecksums(DataStream);//, MC02Header);
-            using (var fs = File.Create(SaveFilePath+".fix"))
+            ChecksumsStuff.FixChecksums(DataStream, MC02Header);
+            //using (var fs = File.Create(SaveFilePath+".fix"))
             {
-                DataStream.WriteTo(fs);
+                //DataStream.WriteTo(fs);
             }
 
-            Console.WriteLine("fixed");
-            Console.ReadLine();
+            //Console.WriteLine("end");
+            //Console.ReadLine();
         }
     }
 }

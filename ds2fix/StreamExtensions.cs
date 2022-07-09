@@ -7,16 +7,18 @@ namespace DeadSpace2SaveEditor.Code
     public static class StreamExtensions
     {
         #region Read extensions
-        public static int ReadInt32(this Stream stream)
+
+        public static int ReadInt32(this Stream stream)//, bool BE)
         {
-            var buffer = new byte[4];
-            stream.Read(buffer, 0, buffer.Length);
+            var buffer = new byte[4]; bool BE = true;
+            stream.Read(buffer, 0, buffer.Length); if (BE) Array.Reverse(buffer);
             return BitConverter.ToInt32(buffer, 0);
         }
+
         public static uint ReadUInt32(this Stream stream)
         {
-            var buffer = new byte[4];
-            stream.Read(buffer, 0, buffer.Length);
+            var buffer = new byte[4]; bool BE = true;
+            stream.Read(buffer, 0, buffer.Length); if (BE) Array.Reverse(buffer);
             return BitConverter.ToUInt32(buffer, 0);
         }
 

@@ -59,36 +59,67 @@ namespace DeadSpace2SaveEditor.Code
         };
 
         #region HASH
-        public static void FixChecksums(MemoryStream stream)//, MC02Header mc02Header)
+        public static void FixChecksums(MemoryStream stream, MC02Header mc02Header)
         {
             #region Fix save data hash
             var saveDataHash = CalculateSaveDataHash(stream);
-            stream.Seek(0x2854-0x2830-4, SeekOrigin.Begin); //20
-            stream.Write(BitConverter.GetBytes(saveDataHash), 0, 4);
+            stream.Seek(0xD000 + 0x2854 -0x2834, SeekOrigin.Begin);
+            var out1 = BitConverter.GetBytes(saveDataHash);
+            Array.Reverse(out1);
+            stream.Write(out1, 0, 4);
             #endregion
-            /*
+            
             #region Fix mc02 checksums
             CalculateMC02Checksums(stream, mc02Header);
-            stream.Seek(0x2844, SeekOrigin.Begin);
+            stream.Seek(0xD000+0x2844 - 0x2834, SeekOrigin.Begin);
+
+            Console.WriteLine("MC02");
+
+            var tmp = stream.ReadUInt32();
+            Console.WriteLine(tmp+" -> "+ mc02Header.Checksum0);
+            stream.Seek(-4, SeekOrigin.Current);
+
             stream.Write(BitConverter.GetBytes(mc02Header.Checksum0), 0, 4);
+
+            tmp = stream.ReadUInt32();
+            Console.WriteLine(tmp + " -> " + mc02Header.Checksum1);
+            stream.Seek(-4, SeekOrigin.Current);
+
             stream.Write(BitConverter.GetBytes(mc02Header.Checksum1), 0, 4);
+
+            tmp = stream.ReadUInt32();
+            Console.WriteLine(tmp + " -> " + mc02Header.Checksum2);
+            stream.Seek(-4, SeekOrigin.Current);
+
             stream.Write(BitConverter.GetBytes(mc02Header.Checksum2), 0, 4);
             #endregion
-            */
+            
         }
 
         #region Save data hash
         private static int CalculateSaveDataHash(MemoryStream stream)
         {
-            stream.Seek(0x2854-0x2830, SeekOrigin.Begin); // 20 +
+            //2834 -> D000
+            stream.Seek(0xD000 + 0x2854 - 0x2834, SeekOrigin.Begin); //+0x20
+            
+                var hash0 = stream.ReadInt32();
+                Console.WriteLine("hash0\t"+ hash0);
+                stream.Seek(-4, SeekOrigin.Current);
+            
             stream.Write(new byte[] { 0, 0, 0, 0 }, 0, 4);
-            var chunk0Hash = CalculateHash(stream, 0x2850 - 0x2830, 0x170, 0); // 20 +
+            var chunk0Hash = CalculateHash(stream, 0xD000+0x1C, 0x170, 0); //0x2850-0x2834
 
-            stream.Seek(0x28bc - 0x2830 - 4, SeekOrigin.Begin); 
-            //8C -> 88 +
+            //Console.WriteLine("chunk0Hash\t"+chunk0Hash);
+
+            stream.Seek(0xD000+0x28bc - 0x2834, SeekOrigin.Begin); //+0x88
             var chunk1Lingth = stream.ReadInt32();
-            var chunk1Hash = CalculateHash(stream, 0x29c0 - 0x2830, chunk1Lingth, chunk0Hash); //190 +
-
+            
+            //Console.WriteLine("chunk1Lingth\t"+chunk1Lingth);
+            
+            var chunk1Hash = CalculateHash(stream, 0xD000 + 0x29c0 - 0x2834, chunk1Lingth, chunk0Hash); //+0x18C
+            Console.WriteLine("hash1\t" + chunk1Hash);
+            
+            // var s1 = (chunk1Hash != hash0) ? "mismatch" : "ok"; Console.WriteLine(s1);
             return chunk1Hash;
         }
 
@@ -136,7 +167,7 @@ namespace DeadSpace2SaveEditor.Code
             var chunk0Buffer = new byte[mc02Header.Chunk0Length];
             var chunk1Buffer = new byte[mc02Header.Chunk1Length];
 
-            stream.Seek(0x2834, SeekOrigin.Begin);
+            stream.Seek(0xD000, SeekOrigin.Begin);
             stream.Read(headerBuffer, 0, headerBuffer.Length);
             stream.Seek(4, SeekOrigin.Current);
             stream.Read(chunk0Buffer, 0, chunk0Buffer.Length);
@@ -147,12 +178,14 @@ namespace DeadSpace2SaveEditor.Code
 
             var csBytes = new byte[4];
             csBytes = BitConverter.GetBytes(mc02Header.Checksum0);
+            Array.Reverse(csBytes);
             headerBuffer[16] = csBytes[0];
             headerBuffer[17] = csBytes[1];
             headerBuffer[18] = csBytes[2];
             headerBuffer[19] = csBytes[3];
 
             csBytes = BitConverter.GetBytes(mc02Header.Checksum1);
+            Array.Reverse(csBytes);
             headerBuffer[20] = csBytes[0];
             headerBuffer[21] = csBytes[1];
             headerBuffer[22] = csBytes[2];
