@@ -4,6 +4,8 @@
 typedef unsigned long DWORD;
 typedef unsigned char BYTE;
 
+int mc02_BE;
+
 typedef struct
 {
     DWORD magic;        // 0x4D433032, ASCII = "MC02"
@@ -89,6 +91,8 @@ DWORD MC02(const BYTE *pb, DWORD cb)
 
 DWORD FlipDword(DWORD dw)
 {
+    if (!mc02_BE) return dw;
+
     DWORD toReturn = 0;
 
     toReturn |= (dw >> 24);
@@ -115,12 +119,11 @@ void WriteDword(FILE *file, DWORD dw)
     fwrite(&dw, 4, 1, file);
 }
 
-int fst = 0;
 
 void ReadHeader(FILE *file, MC02_Header *header)
 {
     // seek to the beginning of the file
-    fseek(file, 0+fst, SEEK_SET);
+    //fseek(file, 0+fst, SEEK_SET);
 
     header->magic = ReadDword(file);
     header->fileLength = ReadDword(file);
@@ -134,7 +137,7 @@ void ReadHeader(FILE *file, MC02_Header *header)
 void WriteHeader(FILE *file, MC02_Header *header)
 {
     // seek to the beginning of the file
-    fseek(file, 0+fst, SEEK_SET);
+    //fseek(file, 0+fst, SEEK_SET);
 
     WriteDword(file, header->magic);
     WriteDword(file, header->fileLength);
@@ -162,8 +165,11 @@ return (void)0;
 printf("\n");
 }
 
-int mc02(char* path)
+
+int mc02_main(char* path, int fst, int BE)
 {
+    mc02_BE = BE;
+
     printf("mc02_fixer by Experiment5X\n");
 
     BYTE headerBuff[0x18];
@@ -172,8 +178,8 @@ int mc02(char* path)
 
     MC02_Header header;
 
-    if (ReadDword(save) != 0x4D433032)
-        fst = 0xD000; //printf("shift\n"); 
+    // seek to the beginning of the file
+    fseek(save, 0 + fst, SEEK_SET);
 
     ReadHeader(save, &header);
 
@@ -219,6 +225,8 @@ int mc02(char* path)
     *(DWORD*)(headerBuff + 0x14) = FlipDword(header.checksum1);
 
     header.checksum2 = MC02(headerBuff, 0x18);
+
+    fseek(save, 0 + fst, SEEK_SET);
     WriteHeader(save, &header);
     PrintHeader(&header);
     fflush(save);
