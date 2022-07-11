@@ -8,16 +8,16 @@ namespace DeadSpace2SaveEditor.Code
     {
         #region Read extensions
 
-        public static int ReadInt32(this Stream stream)//, bool BE)
+        public static int ReadInt32(this Stream stream, bool BE)
         {
-            var buffer = new byte[4]; bool BE = true;
+            var buffer = new byte[4]; 
             stream.Read(buffer, 0, buffer.Length); if (BE) Array.Reverse(buffer);
-            return BitConverter.ToInt32(buffer, 0);
+            return BitConverter.ToInt32(buffer, 0); 
         }
 
-        public static uint ReadUInt32(this Stream stream)
+        public static uint ReadUInt32(this Stream stream, bool BE)
         {
-            var buffer = new byte[4]; bool BE = true;
+            var buffer = new byte[4]; 
             stream.Read(buffer, 0, buffer.Length); if (BE) Array.Reverse(buffer);
             return BitConverter.ToUInt32(buffer, 0);
         }
@@ -60,7 +60,7 @@ namespace DeadSpace2SaveEditor.Code
             var buffer = new byte[1];
             var str = string.Empty;
             stream.Read(buffer, 0, buffer.Length);
-            while (buffer[0] != 0)
+            while (buffer[0] > 20)
             {
                 str += Encoding.ASCII.GetString(buffer);
                 stream.Read(buffer, 0, buffer.Length);
@@ -83,13 +83,17 @@ namespace DeadSpace2SaveEditor.Code
         #endregion
 
         #region Write extensions
-        public static void WriteInt32(this Stream stream, int value)
+        public static void WriteInt32(this Stream stream, int value, bool BE)
         {
-            stream.Write(BitConverter.GetBytes(value), 0, 4);
+            var out1 = BitConverter.GetBytes(value);
+            if (BE) Array.Reverse(out1);
+            stream.Write(out1, 0, 4);
         }
-        public static void WriteUInt32(this Stream stream, uint value)
+        public static void WriteUInt32(this Stream stream, uint value, bool BE)
         {
-            stream.Write(BitConverter.GetBytes(value), 0, 4);
+            var out1 = BitConverter.GetBytes(value);
+            if (BE) Array.Reverse(out1);
+            stream.Write(out1, 0, 4);
         }
 
         public static void WriteInt16(this Stream stream, short value)
